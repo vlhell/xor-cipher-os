@@ -62,13 +62,13 @@ int main(int argc, char *argv[])
 			break;
 		default:
 			f_usage();
-			exit(EXIT_SUCCESS);
+			return EXIT_SUCCESS;
 		}
 	}
 
 	if (!(path_i && path_o && path_k)) {
 		f_usage();
-		exit(EXIT_SUCCESS);
+		return EXIT_SUCCESS;
 	}
 
 	int i_pipe_fd[2], k_pipe_fd[2];
@@ -77,25 +77,23 @@ int main(int argc, char *argv[])
 	safe_pipe(k_pipe_fd);
 
 	if (safe_fork() == 0) {
-		safe_close(1); //stdout shoutout pacikam
-		assert(dup(i_pipe_fd[1]) == 1);
+		safe_close(STDOUT_FILENO);
+		assert(dup(i_pipe_fd[1]) == STDOUT_FILENO);
 		safe_close(i_pipe_fd[0]);
 		safe_close(i_pipe_fd[1]);
 		safe_close(k_pipe_fd[0]);
 		safe_close(k_pipe_fd[1]);
 		safe_exec("cat", "cat", path_i, NULL);
-		exit(EXIT_SUCCESS);
 	}
 
 	if (safe_fork() == 0) {
-		safe_close(1); //stdout shoutout pacikam
-		assert(dup(k_pipe_fd[1]) == 1);
+		safe_close(STDOUT_FILENO);
+		assert(dup(k_pipe_fd[1]) == STDOUT_FILENO);
 		safe_close(i_pipe_fd[0]);
 		safe_close(i_pipe_fd[1]);
 		safe_close(k_pipe_fd[0]);
 		safe_close(k_pipe_fd[1]);
 		safe_exec("cat", "cat", path_k, NULL);
-		exit(EXIT_SUCCESS);
 	}
 
 	safe_close(i_pipe_fd[1]);
@@ -119,5 +117,6 @@ int main(int argc, char *argv[])
 	safe_close(fd_o);
 	safe_close(i_pipe_fd[0]);
 	safe_close(k_pipe_fd[0]);
-	exit(EXIT_SUCCESS);
+
+	return EXIT_SUCCESS;
 }
